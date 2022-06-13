@@ -1,45 +1,37 @@
 package com.khubla.antlr4example;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.List;
+import java.util.Map;
 
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.TokenStream;
+import com.khubla.antlr4example.csv.CSVLexer;
+import com.khubla.antlr4example.csv.CSVParser;
+import com.khubla.antlr4example.csv.CSVToMapListener;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import com.khubla.antlr4example.Cobol85Parser.StartRuleContext;
 
 /**
  * @author Tom Everett
  */
 class Main {
-   public static void main(String[] args) {
-      System.out.println("Antlr4 Example");
-      try {
-         /*
-          * get the input file as an InputStream
-          */
-         InputStream inputStream = Main.class.getResourceAsStream("/example1.txt");
-         /*
-          * make Lexer
-          */
-         Lexer lexer = new Cobol85Lexer(CharStreams.fromStream(inputStream));
-         /*
-          * get a TokenStream on the Lexer
-          */
-         TokenStream tokenStream = new CommonTokenStream(lexer);
-         /*
-          * make a Parser on the token stream
-          */
-         Cobol85Parser parser = new Cobol85Parser(tokenStream);
-         /*
-          * get the top node of the AST. This corresponds to the topmost rule of equation.q4, "equation"
-          */
-         @SuppressWarnings("unused")
-         StartRuleContext startRuleContext = parser.startRule();
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
+   public static void main(String[] args) throws IOException {
+      InputStream in = new FileInputStream("D:\\Desktop\\test.csv"); // 1
+      Reader r = new InputStreamReader(in);
+      ANTLRInputStream inputStream = new ANTLRInputStream(r);
+      CSVLexer lexer = new CSVLexer(inputStream);
+      CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+      CSVParser parser = new CSVParser(tokenStream);
+      ParseTree parseTree = parser.file();
+      System.out.println(parseTree.toStringTree(parser));
+
+      CSVToMapListener listener = new CSVToMapListener();
+      ParseTreeWalker walker = new ParseTreeWalker();
+      walker.walk(listener,parseTree);
+
+      List<Map<String, String>> rows = listener.getRows();
+      System.out.println(rows);
+
    }
 }
